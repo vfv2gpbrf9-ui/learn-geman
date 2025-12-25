@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德语闪记 V11.4 - 逻辑稳定版</title>
+    <style>
+        :root {
+            --primary: #6c5ce7; --success: #00b894; --empty: #e0e0e0; --danger: #d63031; --warning: #fdcb6e; --bg: #f4f7f6;
+        }
+        body { font-family: 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 500px; }
+        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); margin-bottom: 20px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+
+        /* 看板 */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .letter-node { background: #fff; border: 2px solid #eee; border-radius: 16px; padding: 15px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .letter-node:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .char { font-size: 1.6rem; font-weight: bold; color: var(--primary); }
+        .progress-bar { width: 100%; height: 6px; background: var(--empty); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+        .progress-inner { height: 100%; background: var(--success); transition: width 0.5s ease; }
+
+        /* 测试 */
+        .word-display { font-size: 3rem; text-align: center; margin: 30px 0; font-weight: 800; color: #2d3436; cursor: pointer; }
+        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 15px; border: 2px solid #eee; background: white; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
+        .correct-ans { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        .wrong-ans { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
+        
+        /* 战报 */
+        .summary-box { background: #fff9db; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--warning); }
+        .btn-full { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        textarea { width: 100%; height: 120px; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-family: inherit; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="view-setup" class="card">
+        <h2 style="text-align:center; color:var(--primary);">🚀 德语闪记极速版</h2>
+        <p style="font-size:0.85rem; color:#666;">格式：单词, 词性(der/die/das), 意思, 联想</p>
+        <textarea id="word-input" placeholder="输入单词列表..."></textarea>
+        <button class="btn-full" onclick="startApp()" style="margin-top:10px;">进入记忆看板</button>
+    </div>
+
+    <div id="view-dash" class="card hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 style="margin:0;">掌握进度表</h3>
+            <button onclick="localStorage.clear(); location.reload();" style="color:#ff7675; border:none; background:none; cursor:pointer;">清空数据</button>
+        </div>
+        <div id="dash-grid" class="dashboard-grid"></div>
+    </div>
+
+    <div id="view-test" class="card hidden">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary); font-size:0.9rem;">
+            <span id="label-L">-</span> <span id="label-N">0/0</span>
+        </div>
+        <div id="target-word" class="word-display" onclick="speakText(this.innerText)">-</div>
+        <div id="option-container">
+            <button class="choice-btn" id="btn-1" onclick="submitAns(1)"></button>
+            <button class="choice-btn" id="btn-2" onclick="submitAns(2)"></button>
+        </div>
+    </div>
+
+    <div id="view-result" class="card hidden">
+        <h2 style="text-align:center;">🎯 训练总结</h2>
+        <div id="res-score" style="text-align:center; font-size:1.5rem; color:var(--primary); font-weight:bold; margin:15px 0;"></div>
+        <div id="res-mistakes-list" style="max-height:300px; overflow-y:auto;"></div>
+        <button class="btn-full" onclick="showDashboard()" style="margin-top:20px;">继续训练</button>
+    </div>
+</div>
+
+<script>
+    const SAMPLE = `Apfel, der, 苹果, 🍎硬苹果核\nBrot, das, 面包, 🍞主食中性\nKatze, die, 猫, 🐈母猫阴性\nHandy, das, 手机, 📱电子产品\nHund, der, 狗, 🐕公狗阳性`;
+
+    let db = JSON.parse(localStorage.getItem('v11_4_db')) || {};
+    let lastRaw = localStorage.getItem('v11_4_raw') || "";
+    let activeKeys = [];
+    let activeIdx = 0;
+    let errorList = [];
+    let isLocked = false;
+
+    function speakText(t) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(t);
+        msg.lang = 'de-DE';
+        window.speechSynthesis.speak(msg);
+    }
+
+    function startApp() {
+        const raw = document.getElementById('word-input').value.trim() || SAMPLE;
+        if (raw !== lastRaw) {
+            db = {};
+            raw.split('\n').forEach(line => {
+                const p = line.split(',').map(s => s.trim());
+                if (p.length >= 3) {
+                    db[p[0]] = { gender: p[1], mean: p[2], hook: p[3]||'', char: p[0][0].toUpperCase(), count: 0, learned: false };
+                }
+            });
+            lastRaw = raw;
+            localStorage.setItem('v11_4_db', JSON.stringify(db));
+            localStorage.setItem('v11_4_raw', raw);
+        }
+        showDashboard();
+    }
+
+    function showDashboard() {
+        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById('view-dash').classList.remove('hidden');
+        const groups = {};
+        Object.keys(db).forEach(w => {
+            const L = db[w].char;
+            if(!groups[L]) groups[L] = { total: 0, ok: 0 };
+            groups[L].total++;
+            if(db[w].learned) groups[L].ok++;
+        });
+        const grid = document.getElementById('dash-grid');
+        grid.innerHTML = Object.keys(groups).sort().map(L => {
+            const p = Math.round(groups[L].ok / groups[L].total * 100);
+            return `<div class="letter-node" onclick="initTest('${L}')">
+                <div class="char">${L}</div>
+                <div style="font-size:0.8rem; color:#666; margin:4px 0;">掌握 ${groups[L].ok}/${groups[L].total}</div>
+                <div class="progress-bar"><div class="progress-inner" style="width:${p}%"></div></div>
+            </div>`;
+        }).join('');
+    }
+
+    function initTest(L) {
+        activeKeys = Object.keys(db).filter(w => db[w].char === L && !db[w].learned);
+        if (activeKeys.length === 0) return alert("这一组你已经全部学会啦！");
+        activeIdx = 0;
+        errorList = [];
+        document.getElementById('label-L').innerText = "字母组: " + L;
+        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById('view-test').classList.remove('hidden');
+        renderStep();
+    }
+
+    function renderStep() {
+        if (activeIdx >= activeKeys.length) {
+            renderSummary();
+            return;
+        }
+        isLocked = false;
+        const word = activeKeys[activeIdx];
+        document.getElementById('target-word').innerText = word;
+        document.getElementById('label-N').innerText = `${activeIdx + 1} / ${activeKeys.length}`;
+        speakText(word);
+
+        const b1 = document.getElementById('btn-1'), b2 = document.getElementById('btn-2');
+        b1.className = 'choice-btn'; b2.className = 'choice-btn';
+        
+        const corr = db[word].gender;
+        const wrng = ["der","die","das"].filter(g => g !== corr)[Math.floor(Math.random()*2)];
+        const swap = Math.random() > 0.5;
+        b1.innerText = swap ? wrng : corr; b1.dataset.isCorrect = !swap;
+        b2.innerText = swap ? corr : wrng; b2.dataset.isCorrect = swap;
+    }
+
+    function submitAns(n) {
+        if (isLocked) return;
+        isLocked = true;
+        
+        const word = activeKeys[activeIdx];
+        const b1 = document.getElementById('btn-1'), b2 = document.getElementById('btn-2');
+        let isRight = false;
+
+        const btn = document.getElementById('btn-' + n);
+        isRight = btn.dataset.isCorrect === "true";
+        
+        // 视觉反馈：不管对错，正确答案都要亮绿
+        btn.classList.add(isRight ? 'correct-ans' : 'wrong-ans');
+        if(!isRight) {
+            errorList.push(word);
+            db[word].count = 0; // 错一次归零
+            if(b1.dataset.isCorrect === "true") b1.classList.add('correct-ans');
+            else b2.classList.add('correct-ans');
+        } else {
+            db[word].count++;
+            if(db[word].count >= 3) db[word].learned = true; // 连续3次对标记为学会
+        }
+
+        // 保存进度
+        localStorage.setItem('v11_4_db', JSON.stringify(db));
+
+        // 核心跳转逻辑
+        setTimeout(() => {
+            activeIdx++;
+            renderStep();
+        }, 1100);
+    }
+
+    function renderSummary() {
+        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById('view-result').classList.remove('hidden');
+        
+        const total = activeKeys.length;
+        const uniqueErrors = [...new Set(errorList)];
+        const score = Math.round((total - uniqueErrors.length) / total * 100);
+        
+        document.getElementById('res-score').innerText = `本轮正确率: ${score}%`;
+        const container = document.getElementById('res-mistakes-list');
+        
+        if(uniqueErrors.length === 0) {
+            container.innerHTML = "<div style='text-align:center; padding:20px;'>✨ 完美发挥！继续保持！</div>";
+        } else {
+            container.innerHTML = "<h4>错题回顾：</h4>" + uniqueErrors.map(w => `
+                <div class="summary-box">
+                    <strong>${w} (${db[w].gender})</strong><br>
+                    <span>释义: ${db[w].mean}</span><br>
+                    <small style="color:var(--primary)">记忆点: ${db[w].hook}</small>
+                </div>`).join('');
+        }
+    }
+
+    window.onload = () => {
+        if (lastRaw) {
+            document.getElementById('word-input').value = lastRaw;
+            showDashboard();
+        }
+    };
+</script>
+</body>
+</html>
