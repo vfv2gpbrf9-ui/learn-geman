@@ -3,17 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>德语闪记 V14.0 - 默认词库版</title>
+    <title>德语闪记 V22.0 - 纯净转场版</title>
     <style>
         :root {
             --primary: #6c5ce7; --success: #00b894; --empty: #e0e0e0; --danger: #d63031; --warning: #fdcb6e; --bg: #f4f7f6;
         }
         body { font-family: 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 500px; }
-        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); margin-bottom: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 500px; padding-top: 10px; }
         .hidden { display: none !important; }
 
-        /* 看板样式 */
+        /* 舞台容器：只负责承载当前卡片的进出 */
+        .stage { position: relative; width: 100%; height: 320px; margin-top: 30px; perspective: 1000px; overflow: hidden; }
+
+        /* 通用卡片样式 */
+        .card { 
+            position: absolute; width: 100%; height: 280px; 
+            background: white; border-radius: 28px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            box-sizing: border-box; padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        /* 1. 当前活动位置 */
+        .card-active {
+            left: 0; opacity: 1; z-index: 100;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        /* 2. 离场动画：向左滑动并淡出 */
+        .card-exit {
+            left: -100%; opacity: 0; z-index: 50;
+            transform: translate3d(0, 0, -100px) scale(0.9);
+        }
+
+        /* 3. 进场动画：从右侧划入 */
+        .card-incoming {
+            left: 100%; opacity: 0; z-index: 10;
+            transform: scale(0.95);
+        }
+
+        /* 文字样式 */
+        .word-display { font-size: 3rem; font-weight: 800; color: #2d3436; text-align: center; }
+        .mean-display { font-size: 1.2rem; color: #636e72; margin-top: 10px; font-weight: 500; }
+
+        /* 看板 */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .letter-node { background: #fff; border: 2px solid #eee; border-radius: 16px; padding: 15px; cursor: pointer; text-align: center; transition: 0.2s; }
         .letter-node:hover { border-color: var(--primary); transform: translateY(-2px); }
@@ -21,57 +55,47 @@
         .progress-bar { width: 100%; height: 6px; background: var(--empty); border-radius: 3px; overflow: hidden; margin-top: 10px; }
         .progress-inner { height: 100%; background: var(--success); transition: width 0.5s ease; }
 
-        /* 测试样式 */
-        .word-display { font-size: 3rem; text-align: center; margin: 30px 0; font-weight: 800; color: #2d3436; cursor: pointer; }
-        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 15px; border: 2px solid #eee; background: white; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
+        /* 交互按钮 */
+        .choice-container { margin-top: 20px; position: relative; z-index: 200; }
+        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 1.6rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
         .correct-ans { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
         .wrong-ans { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; animation: shake 0.4s; }
         
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-
-        /* 战报样式 */
-        .summary-item { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
-        .tutor-info { background: #fff9db; border-left: 4px solid var(--warning); padding: 12px; margin-top: 10px; border-radius: 6px; font-size: 0.95rem; line-height: 1.6; }
-        .tutor-btn { background: var(--warning); color: #856404; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        .btn-full { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        .btn-full { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="view-dash" class="card">
+    <div id="view-dash" class="card-static" style="background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="margin:0;">掌握进度表</h3>
+            <h3 style="margin:0;">掌握看板</h3>
             <button onclick="resetAllData()" style="color:#ff7675; border:none; background:none; cursor:pointer;">重置进度</button>
         </div>
         <div id="dash-grid" class="dashboard-grid"></div>
     </div>
 
-    <div id="view-test" class="card hidden">
-        <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary); font-size:0.9rem;">
+    <div id="view-test" class="hidden">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary); font-size:0.9rem; padding: 0 10px;">
             <span id="label-L">-</span> <span id="label-N">0/0</span>
         </div>
-        <div id="target-word" class="word-display" onclick="speakText(this.innerText)">-</div>
-        <div id="option-container">
+        <div class="stage" id="card-stage"></div>
+        <div class="choice-container">
             <button class="choice-btn" id="btn-1" onclick="submitAns(1)"></button>
             <button class="choice-btn" id="btn-2" onclick="submitAns(2)"></button>
         </div>
     </div>
 
-    <div id="view-result" class="card hidden">
+    <div id="view-result" class="card-static hidden" style="background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
         <h2 style="text-align:center;">🎯 训练总结</h2>
         <div id="res-score" style="text-align:center; font-size:1.5rem; color:var(--primary); font-weight:bold; margin:15px 0;"></div>
-        <div id="res-mistakes-list" style="max-height:400px; overflow-y:auto;"></div>
-        <button class="btn-full" onclick="showDashboard()" style="margin-top:20px;">继续训练</button>
+        <div id="res-mistakes-list" style="max-height:400px; overflow-y:auto; padding-right:5px;"></div>
+        <button class="btn-full" onclick="showDashboard()" style="margin-top:20px;">回到看板</button>
     </div>
 </div>
 
 <script>
-    /**
-     * 【重点】在这里替换你的词汇列表！
-     * 格式：单词, 词性, 意思, 联想记忆
-     */
     const MY_VOCAB_LIST = `
 单词,定冠词,意思,🧠 精准记忆逻辑 / 场景联想
 Abend,der,晚上,"🔗  除了深夜(die Nacht)，一天中的时间段全是阳性：der Morgen, der Mittag, der Abend。（这是时间段的铁律）"
@@ -217,21 +241,19 @@ Essen	das	食物	🔒  动词原形直接作名词（Gerundium/动名词），10
 Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Yen）都是阳性。唯二要注意的例外是：英镑 (das Pfund) 和 克朗 (die Krone)。
     `.trim();
 
-    let db = JSON.parse(localStorage.getItem('v14_db')) || null;
+    let db = JSON.parse(localStorage.getItem('v22_db')) || null;
     let activeKeys = [];
     let activeIdx = 0;
-    let errorList = [];
     let isLocked = false;
+    let stepStartTime = 0;
 
-    // 语音功能
-    function speakText(t) {
+    function speakText(text, repeatCount = 1) {
         window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(t);
-        msg.lang = 'de-DE';
+        const msg = new SpeechSynthesisUtterance(Array(repeatCount).fill(text).join(", "));
+        msg.lang = 'de-DE'; msg.rate = 0.85;
         window.speechSynthesis.speak(msg);
     }
 
-    // 初始化 App：解析默认词汇
     function initApp() {
         if (!db) {
             db = {};
@@ -240,50 +262,44 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
                 if (p.length >= 3) {
                     const word = p[0];
                     if (word && /^[a-zA-Z]/.test(word)) {
-                        const firstChar = word[0].toUpperCase();
-                        db[word] = { 
-                            gender: p[1], mean: p[2], 
-                            hook: p[3] || '坚持就是胜利！', 
-                            char: firstChar, count: 0, learned: false 
-                        };
+                        db[word] = { gender: p[1], mean: p[2], hook: p[3]||'加油', char: word[0].toUpperCase(), score: 0, learned: false };
                     }
                 }
             });
-            localStorage.setItem('v14_db', JSON.stringify(db));
+            localStorage.setItem('v22_db', JSON.stringify(db));
         }
         showDashboard();
     }
 
-    // 显示看板
     function showDashboard() {
-        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.card-static, #view-test').forEach(c => c.classList.add('hidden'));
         document.getElementById('view-dash').classList.remove('hidden');
         const groups = {};
         Object.keys(db).forEach(w => {
             const L = db[w].char;
             if(!groups[L]) groups[L] = { total: 0, ok: 0 };
             groups[L].total++;
-            if(db[w].learned) groups[L].ok++;
+            if(db[w].score >= 80) groups[L].ok++;
         });
         const grid = document.getElementById('dash-grid');
         grid.innerHTML = Object.keys(groups).sort().map(L => {
             const p = Math.round(groups[L].ok / groups[L].total * 100);
             return `<div class="letter-node" onclick="initTest('${L}')">
                 <div class="char">${L}</div>
-                <div style="font-size:0.8rem; color:#666; margin:4px 0;">掌握 ${groups[L].ok}/${groups[L].total}</div>
+                <div style="font-size:0.8rem; color:#666;">掌握 ${groups[L].ok}/${groups[L].total}</div>
                 <div class="progress-bar"><div class="progress-inner" style="width:${p}%"></div></div>
             </div>`;
         }).join('');
     }
 
-    // 启动特定字母测试
     function initTest(L) {
-        activeKeys = Object.keys(db).filter(w => db[w].char === L && !db[w].learned);
-        if (activeKeys.length === 0) return alert("这一组已经全部学会啦！");
+        const keys = Object.keys(db).filter(w => db[w].char === L && !db[w].learned);
+        if (keys.length === 0) return alert("本组已攻克！");
+        activeKeys = keys.sort((a, b) => (db[a].score || 0) - (db[b].score || 0));
         activeIdx = 0;
-        errorList = [];
         document.getElementById('label-L').innerText = "字母组: " + L;
-        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById('card-stage').innerHTML = ""; 
+        document.getElementById('view-dash').classList.add('hidden');
         document.getElementById('view-test').classList.remove('hidden');
         renderStep();
     }
@@ -292,17 +308,38 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
         if (activeIdx >= activeKeys.length) return renderSummary();
         isLocked = false;
         const word = activeKeys[activeIdx];
-        document.getElementById('target-word').innerText = word;
-        document.getElementById('label-N').innerText = `${activeIdx + 1} / ${activeKeys.length}`;
-        speakText(word);
+        const stage = document.getElementById('card-stage');
 
-        const b1 = document.getElementById('btn-1'), b2 = document.getElementById('btn-2');
-        b1.className = 'choice-btn'; b2.className = 'choice-btn';
+        // 1. 旧卡片向左划出并销毁
+        const oldActive = stage.querySelector('.card-active');
+        if (oldActive) {
+            oldActive.classList.replace('card-active', 'card-exit');
+            setTimeout(() => oldActive.remove(), 700); // 动画结束后从 DOM 移除
+        }
+
+        // 2. 新卡片从右入场
+        const newCard = document.createElement('div');
+        newCard.className = 'card card-incoming';
+        newCard.innerHTML = `
+            <div class="word-display">${word}</div>
+            <div class="mean-display">${db[word].mean}</div>
+        `;
+        stage.appendChild(newCard);
+
+        setTimeout(() => { newCard.classList.replace('card-incoming', 'card-active'); }, 50);
+
+        document.getElementById('label-N').innerText = `${activeIdx + 1} / ${activeKeys.length}`;
+        stepStartTime = Date.now();
+        
+        document.getElementById('btn-1').className = 'choice-btn';
+        document.getElementById('btn-2').className = 'choice-btn';
         const corr = db[word].gender;
         const wrng = ["der","die","das"].filter(g => g !== corr)[Math.floor(Math.random()*2)];
         const swap = Math.random() > 0.5;
-        b1.innerText = swap ? wrng : corr; b1.dataset.isCorrect = !swap;
-        b2.innerText = swap ? corr : wrng; b2.dataset.isCorrect = swap;
+        document.getElementById('btn-1').innerText = swap ? wrng : corr;
+        document.getElementById('btn-1').dataset.isCorrect = !swap;
+        document.getElementById('btn-2').innerText = swap ? corr : wrng;
+        document.getElementById('btn-2').dataset.isCorrect = swap;
     }
 
     function submitAns(n) {
@@ -311,56 +348,45 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
         const word = activeKeys[activeIdx];
         const btn = document.getElementById('btn-' + n);
         const isRight = btn.dataset.isCorrect === "true";
+        const timeTaken = (Date.now() - stepStartTime) / 1000;
 
         btn.classList.add(isRight ? 'correct-ans' : 'wrong-ans');
         if(!isRight) {
-            errorList.push(word);
-            db[word].count = 0;
+            db[word].score = Math.max(-50, (db[word].score || 0) - 25);
             const correctBtn = document.getElementById('btn-1').dataset.isCorrect === "true" ? document.getElementById('btn-1') : document.getElementById('btn-2');
             correctBtn.classList.add('correct-ans');
         } else {
-            db[word].count++;
-            if(db[word].count >= 3) db[word].learned = true;
+            db[word].score = Math.min(100, (db[word].score || 0) + (timeTaken > 5 ? 5 : 15));
+            if(db[word].score >= 80) db[word].learned = true;
         }
 
-        localStorage.setItem('v14_db', JSON.stringify(db));
+        speakText(db[word].gender + " " + word, isRight ? 1 : 2);
+        localStorage.setItem('v22_db', JSON.stringify(db));
+
         setTimeout(() => {
             activeIdx++;
             renderStep();
-        }, 1100);
+        }, isRight ? 1800 : 3500);
     }
 
     function renderSummary() {
-        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById('view-test').classList.add('hidden');
         document.getElementById('view-result').classList.remove('hidden');
-        const uniqueErrors = [...new Set(errorList)];
-        const score = Math.round((activeKeys.length - uniqueErrors.length) / activeKeys.length * 100);
-        document.getElementById('res-score').innerText = `本轮正确率: ${score}%`;
+        const mistakes = activeKeys.filter(w => !db[w].learned);
+        document.getElementById('res-score').innerText = `本轮正确率: ${Math.round((activeKeys.length - mistakes.length)/activeKeys.length*100)}%`;
         const container = document.getElementById('res-mistakes-list');
-        
-        if(uniqueErrors.length === 0) {
-            container.innerHTML = "<div style='text-align:center; padding:20px;'>✨ 完美发挥！继续保持！</div>";
+        if(mistakes.length === 0) {
+            container.innerHTML = "<div style='text-align:center; padding:20px;'>✨ 全部攻克！</div>";
         } else {
-            container.innerHTML = "<h4>错题回顾 (点击查看辅导):</h4>" + uniqueErrors.map((w, i) => `
-                <div class="summary-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong>${w} (${db[w].gender})</strong>
-                        <span style="color:#666;">${db[w].mean}</span>
-                    </div>
-                    <div id="tutor-box-${i}" class="tutor-info hidden">👨‍🏫 ${db[w].hook}</div>
-                    <button class="tutor-btn" onclick="document.getElementById('tutor-box-${i}').classList.toggle('hidden')">💡 深度学习辅导</button>
+            container.innerHTML = mistakes.map(w => `
+                <div class="summary-item" style="border-left: 5px solid var(--danger); background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;">
+                    <strong>${db[w].gender} ${w}</strong> - ${db[w].mean}<br>
+                    <small style="color: var(--warning);">💡 记忆点: ${db[w].hook}</small>
                 </div>`).join('');
         }
     }
 
-    function resetAllData() {
-        if(confirm("确定要重置所有进度并恢复默认词库吗？")) {
-            localStorage.clear();
-            location.reload();
-        }
-    }
-
-    // 自动加载逻辑
+    function resetAllData() { if(confirm("确定清空数据吗？")) { localStorage.clear(); location.reload(); } }
     window.onload = initApp;
 </script>
 </body>
