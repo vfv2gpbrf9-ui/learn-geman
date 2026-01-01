@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>德语闪记 V22.1 - 逻辑修正版</title>
+    <title>德语闪记 V23.0 - 极速晋级版</title>
     <style>
         :root {
             --primary: #6c5ce7; --success: #00b894; --empty: #e0e0e0; --danger: #d63031; --warning: #fdcb6e; --bg: #f4f7f6;
@@ -38,7 +38,7 @@
         .progress-inner { height: 100%; background: var(--success); transition: width 0.5s ease; }
 
         .choice-container { margin-top: 20px; position: relative; z-index: 200; }
-        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
+        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 1.6rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
         .correct-ans { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
         .wrong-ans { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; animation: shake 0.4s; }
         
@@ -78,6 +78,7 @@
 </div>
 
 <script>
+    // 默认词库
     const MY_VOCAB_LIST = `
 单词,定冠词,意思,🧠 精准记忆逻辑 / 场景联想
 Abend,der,晚上,"🔗  除了深夜(die Nacht)，一天中的时间段全是阳性：der Morgen, der Mittag, der Abend。（这是时间段的铁律）"
@@ -671,14 +672,11 @@ Zitrone	die	柠檬	🍋  以 -e 结尾的水果。
 Zoo	der	动物园	🦁  包含很多动物 (die Tiere) 的地方，但本身是阳性。
 Zucker	der	糖	🍬  颗粒状物质，阳性。
 Zug	der	火车	🚆  拉动的东西，阳性。
-
-
-
     `.trim();
 
-    let db = JSON.parse(localStorage.getItem('v22_1_db')) || null;
+    let db = JSON.parse(localStorage.getItem('v23_db')) || null;
     let activeKeys = [];
-    let sessionMistakes = []; // 【新增】用于记录本轮练习中出错的单词
+    let sessionMistakes = []; 
     let activeIdx = 0;
     let isLocked = false;
     let stepStartTime = 0;
@@ -702,7 +700,7 @@ Zug	der	火车	🚆  拉动的东西，阳性。
                     }
                 }
             });
-            localStorage.setItem('v22_1_db', JSON.stringify(db));
+            localStorage.setItem('v23_db', JSON.stringify(db));
         }
         showDashboard();
     }
@@ -715,6 +713,7 @@ Zug	der	火车	🚆  拉动的东西，阳性。
             const L = db[w].char;
             if(!groups[L]) groups[L] = { total: 0, ok: 0 };
             groups[L].total++;
+            // 掌握标准依然是 80 分
             if(db[w].score >= 80) groups[L].ok++;
         });
         const grid = document.getElementById('dash-grid');
@@ -731,10 +730,11 @@ Zug	der	火车	🚆  拉动的东西，阳性。
     function initTest(L) {
         const keys = Object.keys(db).filter(w => db[w].char === L && !db[w].learned);
         if (keys.length === 0) return alert("本组已攻克！");
+        // 按分数从低到高排序，弱项优先展示
         activeKeys = keys.sort((a, b) => (db[a].score || 0) - (db[b].score || 0));
         activeIdx = 0;
-        sessionMistakes = []; // 重置本轮错误记录
-        document.getElementById('label-L').innerText = "字母组: " + L;
+        sessionMistakes = [];
+        document.getElementById('label-L').innerText = "挑战字母: " + L;
         document.getElementById('card-stage').innerHTML = ""; 
         document.getElementById('view-dash').classList.add('hidden');
         document.getElementById('view-test').classList.remove('hidden');
@@ -786,18 +786,22 @@ Zug	der	火车	🚆  拉动的东西，阳性。
         const timeTaken = (Date.now() - stepStartTime) / 1000;
 
         btn.classList.add(isRight ? 'correct-ans' : 'wrong-ans');
+        
         if(!isRight) {
-            sessionMistakes.push(word); // 【记录错误】
-            db[word].score = Math.max(-50, (db[word].score || 0) - 25);
+            sessionMistakes.push(word);
+            // 【V23 逻辑更新】打错扣 45 分，且不低于 0 分
+            db[word].score = Math.max(0, (db[word].score || 0) - 45);
             const correctBtn = document.getElementById('btn-1').dataset.isCorrect === "true" ? document.getElementById('btn-1') : document.getElementById('btn-2');
             correctBtn.classList.add('correct-ans');
         } else {
-            db[word].score = Math.min(100, (db[word].score || 0) + (timeTaken > 5 ? 5 : 15));
+            // 【V23 逻辑更新】快速对 30 分，慢速对 20 分
+            let increment = timeTaken > 5 ? 20 : 30;
+            db[word].score = Math.min(100, (db[word].score || 0) + increment);
             if(db[word].score >= 80) db[word].learned = true;
         }
 
         speakText(db[word].gender + " " + word, isRight ? 1 : 2);
-        localStorage.setItem('v22_1_db', JSON.stringify(db));
+        localStorage.setItem('v23_db', JSON.stringify(db));
 
         setTimeout(() => {
             activeIdx++;
@@ -808,16 +812,12 @@ Zug	der	火车	🚆  拉动的东西，阳性。
     function renderSummary() {
         document.getElementById('view-test').classList.add('hidden');
         document.getElementById('view-result').classList.remove('hidden');
-        
-        // 【修正计算公式】使用本轮正确数 / 本轮总数
         const correctCount = activeKeys.length - sessionMistakes.length;
         const accuracy = Math.round((correctCount / activeKeys.length) * 100);
-        
         document.getElementById('res-score').innerText = `本轮正确率: ${accuracy}%`;
         const container = document.getElementById('res-mistakes-list');
-        
         if(sessionMistakes.length === 0) {
-            container.innerHTML = "<div style='text-align:center; padding:20px;'>✨ 全部攻克！</div>";
+            container.innerHTML = "<div style='text-align:center; padding:20px;'>✨ 完美攻克！</div>";
         } else {
             container.innerHTML = sessionMistakes.map(w => `
                 <div class="summary-item">
