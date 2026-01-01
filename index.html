@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>德语闪记 V22.0 - 纯净转场版</title>
+    <title>德语闪记 V22.1 - 逻辑修正版</title>
     <style>
         :root {
             --primary: #6c5ce7; --success: #00b894; --empty: #e0e0e0; --danger: #d63031; --warning: #fdcb6e; --bg: #f4f7f6;
@@ -12,10 +12,8 @@
         .container { width: 100%; max-width: 500px; padding-top: 10px; }
         .hidden { display: none !important; }
 
-        /* 舞台容器：只负责承载当前卡片的进出 */
         .stage { position: relative; width: 100%; height: 320px; margin-top: 30px; perspective: 1000px; overflow: hidden; }
 
-        /* 通用卡片样式 */
         .card { 
             position: absolute; width: 100%; height: 280px; 
             background: white; border-radius: 28px; 
@@ -25,29 +23,13 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
 
-        /* 1. 当前活动位置 */
-        .card-active {
-            left: 0; opacity: 1; z-index: 100;
-            transform: translate3d(0, 0, 0) scale(1);
-        }
+        .card-active { left: 0; opacity: 1; z-index: 100; transform: translate3d(0, 0, 0) scale(1); }
+        .card-exit { left: -100%; opacity: 0; z-index: 50; transform: translate3d(0, 0, -100px) scale(0.9); }
+        .card-incoming { left: 100%; opacity: 0; z-index: 10; transform: scale(0.95); }
 
-        /* 2. 离场动画：向左滑动并淡出 */
-        .card-exit {
-            left: -100%; opacity: 0; z-index: 50;
-            transform: translate3d(0, 0, -100px) scale(0.9);
-        }
-
-        /* 3. 进场动画：从右侧划入 */
-        .card-incoming {
-            left: 100%; opacity: 0; z-index: 10;
-            transform: scale(0.95);
-        }
-
-        /* 文字样式 */
         .word-display { font-size: 3rem; font-weight: 800; color: #2d3436; text-align: center; }
         .mean-display { font-size: 1.2rem; color: #636e72; margin-top: 10px; font-weight: 500; }
 
-        /* 看板 */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .letter-node { background: #fff; border: 2px solid #eee; border-radius: 16px; padding: 15px; cursor: pointer; text-align: center; transition: 0.2s; }
         .letter-node:hover { border-color: var(--primary); transform: translateY(-2px); }
@@ -55,14 +37,14 @@
         .progress-bar { width: 100%; height: 6px; background: var(--empty); border-radius: 3px; overflow: hidden; margin-top: 10px; }
         .progress-inner { height: 100%; background: var(--success); transition: width 0.5s ease; }
 
-        /* 交互按钮 */
         .choice-container { margin-top: 20px; position: relative; z-index: 200; }
-        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 1.6rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
+        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
         .correct-ans { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
         .wrong-ans { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; animation: shake 0.4s; }
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
         .btn-full { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .summary-item { border-left: 5px solid var(--danger); background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -239,10 +221,464 @@ Ermäßigung	die	优惠	🔒  后缀 -ung 100% 是阴性。
 Erwachsene	der/die	成年人	🧑  形容词名词化 (wachsen -> erwachsen)。看人定词性。
 Essen	das	食物	🔒  动词原形直接作名词（Gerundium/动名词），100% 是中性（Das Lesen, Das Schreiben, Das Essen）。
 Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Yen）都是阳性。唯二要注意的例外是：英镑 (das Pfund) 和 克朗 (die Krone)。
+
+Fach	das	格子/学科	📦  想象一个书架上的方形格子 (das Quadrat)。用于分类的容器通常是中性。
+Fahrer	der	司机	👨  以 -er 结尾的施动者 (fahren -> Fahrer)，100% 是阳性。
+Fahrkarte	die	车票	🏗  词性随 die Karte (卡片)。
+Fahrplan	der	时刻表	🏗  词性随 der Plan (计划)。
+Fahrrad	das	自行车	🏗  词性随 das Rad (轮子)。圆形的轮子是中性。
+Familie	die	家庭	👨‍👩‍👧  以 -ie 结尾的名词 (Familie, Studie, Chemie)，100% 是阴性。
+Familienname	der	姓氏	🔤  Name 是弱变化名词 (N-Deklination)。把它看作是一个男人的标签 (der Name)。
+Familienstand	der	婚姻状况	🏗  词性随 der Stand (站立/状态)。站立是一个阳刚的动作。
+Fan	der	粉丝	👨  指代人。源于英语 "Fanatic"，默认指代男性狂热者。
+Farbe	die	颜色	🎨  以 -e 结尾。世界是多彩的，像大自然 (die Natur) 一样。
+Fehler	der	错误	❌  虽然不是职业，但以 -er 结尾的抽象名词往往是阳性。想象它是一个捣乱的小鬼。
+Feier	die	庆典	🎉  源于动词 feieren。名词化后以 -er 结尾但不是施动者，而是活动本身，阴性。
+Feierabend	der	下班	🏗  词性随 der Abend。
+Feiertag	der	节日	🏗  词性随 der Tag。
+Fenster	das	窗户	🖼️  方形的框，像画 (das Bild) 一样挂在墙上。
+Ferien	die	假期	👯  只有复数形式 (Pluralwort)，永远是 die。
+Fernseher	der	电视机	📺  以 -er 结尾的机器设备，100% 是阳性。
+Fest	das	节日	🎈 联想：这是一个通用的、盛大的事件 (das Event)。
+Festival	das	音乐节	🎪  英语/法语外来词，以 -val 结尾通常是中性。
+Feuer	das	火	🔥  四大元素中，水 (das Wasser) 和火 (das Feuer) 也是中性。
+Fieber	das	发烧	🤒  一种病理状态。像 das Wetter 一样不可控。
+Film	der	电影	🎞️ 联想：原意是胶卷长条 (der Streifen)。
+Firma	die	公司	👩  以 -a 结尾的拉丁源名词，通常是阴性。
+Fisch	der	鱼	🐟  大多数常见的动物总称（Hund, Fisch, Vogel）是阳性。
+Flasche	die	瓶子	🍾  典型的容器，以 -e 结尾，形状有曲线。
+Fleisch	das	肉	🥩  不可数的物质名词，就像金子 (das Gold) 一样是中性。
+Flughafen	der	机场	🏗  词性随 der Hafen (港口)。
+Flugzeug	das	飞机	🏗  词性随 das Zeug (东西/装备)。这只是“飞行的装备”。
+Fluss	der	河流	🌊  源于 fließen (流淌)。流动的力量 (der Strom)。
+Formular	das	表格	📄 联想：官方文件，纸张类 (das Papier)。
+Fotoapparat	der	相机	🏗  词性随 der Apparat (机器)。
+Foto	das	照片	📷  以 -o 结尾的技术缩略词 (Auto, Kino, Foto)，100% 是中性。
+Frage	die	问题	❓  和 die Antwort (回答) 是双胞胎。
+Frau	die	女人	👩  自然性别。
+Freizeit	die	空闲时间	🏗  词性随 die Zeit。
+Freund	der	朋友	👨  指代男性朋友。
+Friseur	der	理发师	🇫🇷  法语职业后缀 -eur (Ingenieur, Friseur)，100% 是阳性。
+Frühstück	das	早餐	🏗  词性随 das Stück (块/片)。早上的那“一块”面包。
+Führung	die	导览	🔒  后缀 -ung 100% 是阴性。
+Führerschein	der	驾照	🏗  词性随 der Schein (票据/证明)。
+Fundsachen	die	失物	👯  复数形式。核心是 die Sache (事情/东西)。
+Fuß	der	脚	🦶  身体部位。脚踢球有力，阳性。
+Fußball	der	足球	🏗  词性随 der Ball。
+
+Gabel	die	叉子	🍴 餐具三剑客：勺子像男人 (der Löffel)，刀子很危险所以中立 (das Messer)，叉子有尖刺像女王的皇冠 (die Gabel)。
+Garage	die	车库	🇫🇷  法语外来语后缀 -age (Garage, Etage, Massage)，100% 是阴性。
+Garten	der	花园	🏡 联想：一个被围栏围起来的空间，像公园 (der Park)。
+Gast	der	客人	👨  默认指代男性客人，或者泛指人。
+Gebäude	das	建筑物	🧱  前缀 Ge- 开头的集合名词 (Gebäude, Gebirge)，90% 是中性。
+Geburtsjahr	das	出生年	🏗  词性随 das Jahr。
+Geburtstag	der	生日	🏗  词性随 der Tag。
+Gegenteil	das	相反	🎭  Der Teil 是“部分”，但 Das Gegenteil 是“相反的事物/对立面”。对立面是抽象概念 -> 中性。
+Gehalt	das	薪水	💰  Der Gehalt = 内容/含量（如酒精含量）；Das Gehalt = 薪水。记住：薪水是中性的，因为钱 (das Geld) 是中性的。
+Geld	das	钱	🪙  贵重金属金 (das Gold) 和银 (das Silber) 都是中性，所以钱也是。
+Geldbörse	die	钱包	🏗  词性随 die Börse (交易所/袋子)。
+Gemüse	das	蔬菜	🥦  前缀 Ge- 的集合名词 (所有蔬菜的总称) 是中性。
+Gepäck	das	行李	🧳  前缀 Ge- 的集合名词 (Packen -> Gepäck) 是中性。
+Gerät	das	设备	🛠  前缀 Ge- 的集合名词 (所有器具的总称) 是中性。
+Gericht	das	菜肴/法庭	⚖️  前缀 Ge- 的集合名词 (Richten -> Gericht) 是中性。
+Geschäft	das	商店/生意	🤝  前缀 Ge- 的名词 (Schaffen -> Geschäft) 是中性。
+Geschenk	das	礼物	🎁  前缀 Ge- 的名词 (Schenken -> Geschenk) 是中性。
+Geschichte	die	历史/故事	📚  虽然以 Ge- 开头，但以 -e 结尾。词尾的规则 (-e -> die) 战胜了词首。
+Geschirr	das	餐具	🍽️  前缀 Ge- 的集合名词 (所有盘碗的总称) 是中性。
+Geschwister	die	兄弟姐妹	👯  复数形式 (Pluralwort)。单数是 das Geschwister (罕用)。
+Gesicht	das	脸	😶  前缀 Ge- 的名词 (Sehen -> Gesicht) 是中性。
+Gespräch	das	对话	🗣️  前缀 Ge- 的名词 (Sprechen -> Gespräch) 是中性。
+Gesundheit	die	健康	🔒  后缀 -heit 100% 是阴性。
+Getränk	das	饮料	🥤  前缀 Ge- 的集合名词 (Trinken -> Getränk) 是中性。
+Gewitter	das	雷雨	⛈️  前缀 Ge- 的集合名词 (Wetter -> Gewitter) 是中性。
+Gitarre	die	吉他	🎸  乐器且以 -e 结尾，形状有曲线，阴性。
+Glas	das	玻璃/杯子	🥃  材料名词通常中性。透明的物质。
+Gleis	das	轨道	🛤️ 联想：这是铁轨的一部分。工业设施，中性。
+Glück	das	运气/幸福	🍀  抽象概念，无法触摸，像命运 (das Schicksal) 一样是中性。
+Glückwunsch	der	祝贺	🏗  词性随 der Wunsch (愿望)。
+Großeltern	die	祖父母	👯  复数形式。
+Größe	die	大小/尺码	📏  形容词名词化且以 -e 结尾 (groß -> die Größe)。
+Gruppe	die	组/群	👥  以 -e 结尾的集合，阴性。
+Gruß	der	问候	👋  源于动词 grüßen。词干名词，阳性。
+
+Haar	das	头发	💇‍♂️  某种材料或集合体。一根头发是 das Haar，一头头发也是 das Haar。
+Hähnchen	das	烤鸡	🔒  后缀 -chen (小称) 100% 是中性。
+Halle	die	大厅	🏟️  巨大的空间，以 -e 结尾。
+Hals	der	脖子	🧣  身体部位。连接头和身体的柱状物，阳性。
+Haltestelle	die	车站	🏗  词性随 die Stelle (位置)。
+Hamburger	der	汉堡包	🍔  源于城市 Hamburg。所有以 -er 结尾的“某地人/物”都是阳性 (Berliner, Frankfurter)。
+Hand	die	手	✋  身体部位大多是阳性/中性，但手是阴性。记住：“Die Hand gibt” (母亲的手给予)。
+Handy	das	手机	📱  伪英语。被视为一种小工具 (das Gadget)。
+Handtuch	das	毛巾	🏗  词性随 das Tuch (布)。布料 (das Tuch) 是中性。
+Haus	das	房子	🏠  最基础的建筑单位，中性。
+Haushalt	der	家务/家庭	🏗  词性随 der Halt (支撑/维持)。维持一个家。
+Hausaufgabe	die	作业	🏗  词性随 die Aufgabe。
+Hausfrau	die	以此家庭主妇	🏗  词性随 die Frau。
+Heft	das	笔记本	📒  书本类 (das Buch) 的亲戚，中性。
+Heimat	die	家乡	❤️  一个充满情感的抽象概念。后缀 -at 在这里例外是阴性 (Die Heimat, Die Heirat)。
+Heizung	die	暖气	🔒  后缀 -ung 100% 是阴性。
+Hemd	das	衬衫	👔  折叠起来是方形的 (das Quadrat)。这也是唯一的“中性”上衣 (Die Jacke, Der Pullover, Die Bluse)。
+Herbst	der	秋天	🍂  四季 (Der Frühling, Der Sommer...) 100% 是阳性。
+Herd	der	炉灶	🔥 联想：火源 (der Feuerplatz)。厨房的心脏。
+Herr	der	先生	👨  自然性别。
+Hilfe	die	帮助	🆘  以 -e 结尾的抽象名词，阴性。
+Himmel	der	天空	☁️  上面的世界。雨 (der Regen) 和雪 (der Schnee) 来自这里，都是阳性。
+Hobby	das	爱好	⛳  以 -y 结尾的英语外来词 (Hobby, Baby, Party例外-因为是聚会)，通常是中性。
+Hochzeit	die	婚礼	🏗  词性随 die Zeit (高光的时刻)。
+Homepage	die	网页	💻  词性随 die Page (页)。英语词源。
+Hose	die	裤子	👖  两条腿管，但单词是单数阴性，以 -e 结尾。
+Hotel	das	酒店	🏨  同 das Café, das Restaurant。服务场所外来词通常中性。
+Hund	der	狗	🐕  动物的默认性别通常是阳性（除非特别指明母狗）。
+Hunger	der	饥饿	🍽️  Der Durst (渴) 和 Der Hunger (饿)。生理欲望是阳性。
+
+Idee	die	主意	💡  以 -ee 结尾的外来词 (Idee, Armee, Fee)，100% 是阴性。
+Information	die	信息	🔒  后缀 -tion 100% 是阴性。
+Insel	die	岛屿	🏝️  以 -el 结尾，但“岛屿”是孤独的女性 (die Einsame)。
+Instrument	das	乐器	🎻  后缀 -ment (Instrument, Dokument, Experiment)，100% 是中性。
+Interesse	das	兴趣	🧐  虽然以 -e 结尾，但源于拉丁语，是中性。记住：我有这个兴趣 (Das Interesse)。
+Internet	das	互联网	🌐  词性随 das Netz (网)。
+Interview	das	采访	🎤  英语外来词，被视为一种“对话” (das Gespräch)。
+
+Jacke	die	夹克	🧥  以 -e 结尾的衣物，阴性。
+Jahr	das	年	📅  时间单位 Tag 和 Monat 是阳性，但 Jahr 是中性。
+Januar	der	一月	🗓️  月份和星期 (Der Montag, Der Januar...) 100% 是阳性。
+Job	der	工作	💼  同 der Beruf。职业是阳性概念。
+Jugendherberge	die	青年旅社	🏗  词性随 die Herberge (旅店)。以 -e 结尾。
+Jugendliche	der/die	青少年	🧑‍🎤  形容词名词化。Der Jugendliche (男少年)，Die Jugendliche (女少年)。
+Junge	der	男孩	👦  弱变化名词 (N-Deklination)。虽以 -e 结尾，但指男性，所以是 der。
+
+Kaffee	der	咖啡	☕  所有含酒精或咖啡因的饮料（酒、咖啡、茶）都是阳性（除啤酒外）。
+Kalender	der	日历	🗓️  以 -er 结尾的工具，阳性。
+Kamera	die	相机	📷  以 -a 结尾的名词，阴性。
+Karte	die	卡片	🃏  以 -e 结尾的扁平物体，阴性。
+Kartoffel	die	土豆	🥔  以 -el 结尾的植物/果实，阴性。
+Käse	der	奶酪	🧀  虽然以 -e 结尾，但这是一整块东西。记住：发臭的奶酪 (der stinkende Käse)。
+Kasse	die	收银台	💰  装钱的盒子，以 -e 结尾，阴性。
+Katze	die	猫	🐈  虽然有公猫 (Kater)，但猫作为物种统称是阴性 (die Katze)。
+Kaufhaus	das	百货大楼	🏗  词性随 das Haus。
+Keller	der	地下室	🏚️  以 -er 结尾的房间/空间，阳性。
+Kenntnisse	die	知识	👯  复数形式。单数是 die Kenntnis (后缀 -nis 这里的例外，阴性)。
+Kette	die	链子	⛓️  以 -e 结尾，阴性。
+Kind	das	孩子	👶  指代未成年/不分性别的人，中性。
+Kindergarten	der	幼儿园	🏗  词性随 der Garten。
+Kino	das	电影院	🎬  以 -o 结尾的外来词，中性。
+Kiosk	der	售货亭	🏪  小房子/亭子，阳性。
+Kirche	die	教堂	⛪  以 -e 结尾的建筑，阴性。
+Klasse	die	班级	🏫  以 -e 结尾的集合，阴性。
+Kleid	das	连衣裙	👗  虽然是女装，但它也是“衣服” (die Kleidung) 的一种形式。这里要死记：Das Kleid。
+Kleidung	die	服装	🔒  后缀 -ung 100% 是阴性。
+Koch	der	厨师	👨‍🍳  男性职业，阳性。
+Koffer	der	箱子	🧳  以 -er 结尾的容器，阳性。
+Kollege	der	同事	👨‍💼  弱变化名词 (N-Deklination)。以 -e 结尾但指男性。
+Kontakt	der	联系	🔌  同 Anschluss。一种接触/连接，阳性。
+Konto	das	账户	💳  以 -o 结尾的金融/外来词，中性。
+Kopf	der	头	👤  身体最重要的指挥官，阳性。
+Körper	der	身体	💪  以 -er 结尾的实体，阳性。
+Kosmetik	die	化妆品	🔒  后缀 -ik (Musik, Physik, Technik) 100% 是阴性。
+Krankenhaus	das	医院	🏗  词性随 das Haus。
+Krankenkasse	die	保险公司	🏗  词性随 die Kasse。
+Krankheit	die	疾病	🔒  后缀 -heit 100% 是阴性。
+Kredit	der	贷款	💸  金融相关的很多词是阳性。
+Kreuzung	die	十字路口	🔒  后缀 -ung 100% 是阴性。
+Krieg	der	战争	⚔️  暴力、破坏性的力量，阳性。
+Küche	die	厨房	🍳  以 -e 结尾的房间，阴性。
+Kuchen	der	蛋糕	🎂  虽然很多食物是中性，但蛋糕 (der Kuchen) 是阳性。
+Kühlschrank	der	冰箱	🏗  词性随 der Schrank (柜子)。
+Kultur	die	文化	🔒  后缀 -tur (Natur, Kultur) 100% 是阴性。
+Kunde	der	客户	👨  弱变化名词。以 -e 结尾但指男性。
+Kunst	die	艺术	🎨  来源于 können (能力)。一种抽象的技能，阴性。
+Kurs	der	课程	📈  过程/路径 (der Lauf)，阳性。
+Laden	der	商店	🚪  最初指用来关闭窗户的“百叶窗/木板” (der Laden)，后来引申为商店。阳刚的木板结构。
+Lampe	die	灯	💡  以 -e 结尾，且形状通常有曲线（灯罩）。
+Land	das	国家/土地	🌍  基本元素。像土 (die Erde) 是阴性，但国家作为一个行政单位或大片土地通常是中性。
+Landschaft	die	风景	🔒  后缀 -schaft (Freundschaft, Mannschaft)，100% 是阴性。
+Laptop	der	笔记本电脑	💻  计算机类外来词，参考 Computer (der)。
+Leben	das	生活/生命	🔒  动词原形名词化 (Das Leben)，100% 是中性。
+Lebensmittel	das	食品	🏗  词性随 das Mittel (手段/中间物)。
+Lehrer	der	老师	👨‍🏫  以 -er 结尾的男性职业者，100% 是阳性。
+Leute	die	人们	👯  复数形式 (Pluralwort)。
+Licht	das	光	🕯️  非物质的自然现象，像 das Feuer (火) 一样是中性。
+Lied	das	歌曲	🎵 联想：一首作品 (das Werk)。
+Link	der	链接	🔗  计算机术语，视为连接器 (der Konnektor)。
+Löffel	der	勺子	🥄 餐具 勺子 (der Löffel) 是爸爸，叉子 (die Gabel) 是妈妈，刀 (das Messer) 是孩子。
+Lokal	das	酒馆/地点	📍  表示场所的外来词。
+Lösung	die	解决方案	🔒  后缀 -ung 100% 是阴性。
+Lüge	die	谎言	🤥  以 -e 结尾的抽象概念。
+Lust	die	兴致/欲望	❤️  强烈的情感，如 die Liebe。
+
+Mädchen	das	女孩	🔒  后缀 -chen (小称) 永远是中性，即使它指代女性。这是德语语法的绝对权威。
+Magen	der	胃	🌭  身体内部的袋子/容器，阳性。
+Mailbox	die	邮箱	📦  英语借词，核心是 Box -> 德语 die Kiste / die Box。
+Mal	das	次/回	⏱️  计数单位点。Einmal, zweimal.
+Mann	der	男人	👨  自然性别。
+Mannschaft	die	队伍	🔒  后缀 -schaft 100% 是阴性。
+Mantel	der	大衣	🧥  把人包裹起来的东西 (der Umhang)。
+Markt	der	市场	🏪  喧闹的交易场所，阳性。
+Maschine	die	机器	⚙️  以 -e 结尾。虽然是大机器，但语法上是阴性。
+Medikament	das	药物	🔒  后缀 -ment (Instrument, Dokument) 100% 是中性。
+Meer	das	大海	🌊  广阔的水域，中性。
+Meinung	die	观点	🔒  后缀 -ung 100% 是阴性。
+Menge	die	数量	🔢  以 -e 结尾的集合概念。
+Mensch	der	人	👤  泛指人类时，语法默认是阳性 (Der Mensch)。
+Messer	das	刀	🔪 餐具 危险的工具，保持中立 (das Neutral)。
+Miete	die	租金	🏠  以 -e 结尾的费用。
+Milch	die	牛奶	🥛  大多数饮料是阳性，但牛奶是阴性 (由母亲/母牛生产)。
+Minute	die	分钟	⏱️  以 -e 结尾的时间单位 (Die Sekunde, Die Stunde, Die Woche)。
+Mittagessen	das	午餐	🔒  核心词 das Essen (吃/食物) 是中性。
+Möbel	die	家具	🪑  通常用作复数。单数是 das Möbelstück。
+Mobiltelefon	das	手机	🏗  词性随 das Telefon。
+Mode	die	时尚	👗  以 -e 结尾，通常与女性关联。
+Moment	der	时刻	⏱️  时间点是阳性 (der Moment)。如果是 Das Moment 则指物理学中的“力矩”，这里指时间。
+Motor	der	发动机	⚙️  以 -or 结尾的机器部件 (Motor, Monitor, Sensor)，100% 是阳性。
+Motorroller	der	摩托车	🏗  词性随 der Roller。
+Müll	der	垃圾	🗑️  一堆乱七八糟的东西，阳性。
+Mund	der	嘴	👄  身体部位。吞噬食物的入口，阳性。
+Museum	das	博物馆	🔒  后缀 -um 100% 是中性。
+Musik	die	音乐	🔒  后缀 -ik 100% 是阴性。
+Mutter	die	母亲	👩  自然性别。
+Mütze	die	帽子	🧢  软帽，以 -e 结尾。
+	
+Nachbar	der	邻居	👨  指代男性邻居。
+Nachricht	die	消息	🏗  来源于 richten。词干 die Richt (方向) 或 die Sicht (视野) 构成的词通常是阴性。
+Nacht	die	夜晚	🌙  一天中唯一的阴性时间段 (Der Tag, Der Abend vs Die Nacht)。
+Name	der	名字	🔤  弱变化名词。虽然以 -e 结尾，但是阳性。
+Natur	die	大自然	🔒  后缀 -tur (Kultur, Natur, Agentur) 100% 是阴性。
+Note	die	分数/音符	📝  以 -e 结尾。
+Notiz	die	笔记	🗒️ 联想：写在纸上的简短信息，阴性。
+Nudel	die	面条	🍝  以 -el 结尾的食品，通常阴性 (Die Kartoffel, Die Nudel)。
+Nummer	die	号码	🔢  以 -er 结尾但不是施动者，而是抽象排序，阴性。
+	
+Obst	das	水果	🍎  集合名词。具体的“苹果”是阳性，具体的“香蕉”是阴性，但“水果”这个总称是中性。
+Ohr	das	耳朵	👂  成对的身体器官通常还是中性 (Das Auge, Das Ohr)。
+Öl	das	油	🛢️  液体物质/粘稠物质，中性。
+Oma	die	奶奶	👵  自然性别。
+Opa	der	爷爷	👴  自然性别。
+Orange	die	橙子	🍊  以 -e 结尾的水果。
+Ordnung	die	秩序	🔒  后缀 -ung 100% 是阴性。
+Ort	der	地点	📍  具体的点/位置，阳性。
+	
+Paar	das	一对	👫  因为包含了一男一女（或其他组合），所以它是中立的 (das)。
+Paket	das	包裹	📦  打包好的东西，中性。
+Papier	das	纸	📄  材料名词。
+Parfüm	das	香水	🇫🇷  法语外来词，中性。
+Park	der	公园	🌳  封闭的景观区域，阳性。
+Partner	der	伙伴	👨  男性伙伴。
+Party	die	派对	🎉  英语外来词，但被视为 die Feier (庆典)，所以是阴性。
+Pass	der	护照	🛂  官方证件，阳性。
+Passwort	das	密码	🏗  词性随 das Wort。
+Pause	die	休息	☕  以 -e 结尾的时段。
+Person	die	人	🎭  无论指男人还是女人，语法上永远是 die Person。
+Pferd	das	马	🐎  动物总称 (Das Pferd, Das Schwein, Das Schaf) 往往是中性。公马是 Der Hengst。
+Pflanze	die	植物	🌿  以 -e 结尾的生命体。
+Pizza	die	比萨	🍕  以 -a 结尾的外来食品，阴性。
+Plakat	das	海报	📜  贴在墙上的大纸，中性。
+Plan	der	计划	🗺️  理性的构思，阳性。
+Platz	der	广场/座位	💺  特定的空间位置，阳性。
+Polizei	die	警察	🔒  后缀 -ei (Bäckerei, Polizei) 100% 是阴性。
+Pommes	die	炸薯条	🍟  复数形式 (Pommes frites)。
+Portion	die	一份	🔒  后缀 -tion (Station, Information) 100% 是阴性。
+Post	die	邮件/邮局	📮  传统机构，阴性。
+Postkarte	die	哪怕	🏗  词性随 die Karte。
+Postleitzahl	die	邮编	🏗  词性随 die Zahl (数字)。
+Praktikum	das	实习	🔒  后缀 -um 100% 是中性。
+Praxis	die	诊所/实践	🏥  外来词，阴性。
+Preis	der	价格/奖品	💰  价值的体现，阳性。
+Problem	das	问题	🔒  希腊语后缀 -ma 或 -em (Thema, Drama, Problem, System) 100% 是中性。
+Produkt	das	产品	🏭  被制造出来的物品，中性。
+Programm	das	节目/程序	📺  希腊语源，中性。
+Projekt	das	项目	🏗  规划好的任务，中性。
+Prospekt	der	宣传册	📰  折叠的纸张，阳性。
+Prüfung	die	考试	🔒  后缀 -ung 100% 是阴性。
+Pullover	der	毛衣	🧶  男装或通用上衣，阳性。
+	
+Qualität	die	质量	🔒  后缀 -tät (Universität, Realität) 100% 是阴性。
+Quiz	das	问答游戏	🎲  英语借词，小游戏，中性。
+
+Radio	das	收音机	📻  以 -o 结尾的技术词汇，中性。
+Rathaus	das	市政厅	🏗  词性随 das Haus。
+Rätsel	das	谜题	🧩  后缀 -sel (Rätsel, Häcksel) 通常是中性。
+Raum	der	房间/空间	🌌  封闭或开放的空间，阳性。
+Rechnung	die	账单	🔒  后缀 -ung 100% 是阴性。
+Regen	der	雨	🌧️  所有降水和天气现象 (Regen, Schnee, Wind, Nebel) 100% 是阳性。
+Reifen	der	轮胎	🍩  圈状物，阳性。
+Reihe	die	排/列	📏  以 -e 结尾的线条概念。
+Reinigung	die	清洁	🔒  后缀 -ung 100% 是阴性。
+Reis	der	米饭	🍚  谷物颗粒。
+Reise	die	旅行	🧳  以 -e 结尾的活动。
+Reisebüro	das	旅行社	🏗  词性随 das Büro。
+Reiseführer	der	导游/指南	🏗  词性随 der Führer (向导/书)。
+Reparatur	die	修理	🔒  后缀 -tur 100% 是阴性。
+Rest	der	剩余	🗑️  剩下的部分，阳性。
+Restaurant	das	餐厅	🍽️  法语借词，场所，中性。
+Rezept	das	处方/食谱	💊  拉丁语 receptum，中性。
+Rezeption	die	接待处	🔒  后缀 -tion 100% 是阴性。
+Rind	das	牛	🐄  牛的总称 (不分公母)，中性。
+Ring	der	戒指	💍  圈，阳性。
+Rock	der	裙子	👗  虽然是女装，但是阳性 (Der Rock)。记忆：男人也可以穿苏格兰短裙 (Kilt)。
+Rose	die	玫瑰	🌹  以 -e 结尾的花。
+Rücken	der	背部	🔙  身体宽阔的一面，阳性。
+Rucksack	der	背包	🎒  词性随 der Sack (袋子)。
+Ruhe	die	安静	🤫  以 -e 结尾的抽象状态。
+Rundgang	der	巡视	🏗  词性随 der Gang。
+Sache	die	事情/东西	👩  以 -e 结尾的抽象事物。
+Saft	der	果汁	🍹  源于 Sanguis (血/体液)。所有从植物中榨取的液体通常是阳性。
+Salat	der	沙拉	🥗  借词，约定俗成阳性。
+Salz	das	盐	🧂  基本矿物质。和 das Gold (金) 一样是中性。
+Satz	der	句子	🏗  源于 setzen (放置)。词干名词，阳性。
+Schalter	der	开关/柜台	🕹️  以 -er 结尾的工具/装置，阳性。
+Schere	die	剪刀	✂️  以 -e 结尾的工具。
+Schiff	das	船	🚢  大型交通工具除了车(Bus/Zug)外，船是中性。Das Raumschiff (宇宙飞船)。
+Schild	das	牌子	🛑  Das Schild = 标牌/路牌；Der Schild = 盾牌。初学者通常学的是路牌 (Das)。
+Schirm	der	伞	☂️  保护者 (der Beschützer)。防雨的工具，阳性。
+Schloss	das	城堡/锁	🏰  巨大的石头建筑或金属装置，中性。
+Schluss	der	结束/结论	🎬  源于 schließen (关闭)。动作的终点，阳性。
+Schlüssel	der	钥匙	🔑  以 -el 结尾的工具 (Löffel, Schlüssel)，通常是阳性。
+Schmerz	der	疼痛	😖  一种强烈的感觉，像 der Hass (恨)。
+Schnee	der	雪	❄️  降水和天气现象 (Regen, Schnee, Hagel) 100% 是阳性。
+Schokolade	die	巧克力	🍫  以 -e 结尾的甜食。
+Schrank	der	柜子	🚪  笨重的直立家具，阳性。
+Schuh	der	鞋子	👞  成对的衣物，单只为 der。
+Schule	die	学校	🏫  以 -e 结尾的机构。
+Schüler	der	学生	👨‍🎓  以 -er 结尾的男性身份。
+Schwester	die	姐妹	👩  自然性别。
+Schwimmbad	das	游泳池	🏗  词性随 das Bad。
+See	der	湖	🌊 注意：Der See = 湖泊 (内陆水域)；Die See = 大海 (海洋)。初学者一般指“湖” (Der)。
+Sehenswürdigkeit	die	景点	🔒  后缀 -keit (Möglichkeit, Fähigkeit) 100% 是阴性。
+Seife	die	肥皂	🧼  以 -e 结尾的清洁用品。
+Seite	die	页/边	📄  以 -e 结尾。
+Sekunde	die	秒	⏱️  以 -e 结尾的时间单位。
+Sendung	die	节目/广播	🔒  后缀 -ung 100% 是阴性。
+Service	der	服务	🤵  英语/法语借词，指代服务行为 (Der Dienst)。
+Situation	die	情况	🔒  后缀 -tion 100% 是阴性。
+Ski	der	滑雪板	⛷️  运动器材，长条状，阳性。
+Sofa	das	沙发	🛋️  同 Kino, Auto。以 -a 结尾的家具外来词，中性。
+Sohn	der	儿子	👦  自然性别。
+Sonne	die	太阳	☀️ 神话 德语中，太阳是女神 (die Sonne)，月亮是男神 (der Mond)。与罗曼语族相反。
+Spaß	der	乐趣	😄  积极的情绪状态，阳性。
+Spaziergang	der	散步	🏗  词性随 der Gang。
+Speisekarte	die	菜单	🏗  词性随 die Karte。
+Spiel	das	游戏	🎲  娱乐活动，中性。
+Sport	der	体育	⚽️  英语借词，具有阳刚之气。
+Sprache	die	语言	🗣️  以 -e 结尾的抽象系统。
+Sprechstunde	die	答疑时间	🏗  词性随 die Stunde。
+Stadt	die	城市	🏙️  虽然以辅音结尾，但是城市被视为母亲 (die Mutter)，阴性。
+Stadtplan	der	城市地图	🏗  词性随 der Plan。
+Star	der	明星	🌟  英语借词，指代人。
+Stelle	die	职位/位置	📍  以 -e 结尾。
+Stiefel	der	靴子	👢  比鞋子更重型，常与军人/工人关联，阳性。
+Stift	der	笔	✏️  所有书写工具 (Kugelschreiber, Bleistift, Filzstift) 几乎都是阳性。
+Stipendium	das	奖学金	🔒  拉丁后缀 -ium (Studium, Stipendium) 100% 是中性。
+Stock	der	楼层/棍子	🪜  棍状物，阳性。
+Strand	der	沙滩	🏖️  陆地边缘，阳性。
+Straße	die	街道	🛣️  以 -e 结尾。
+Straßenbahn	die	电车	🏗  词性随 die Bahn。
+Stress	der	压力	🤯  英语借词，负面状态，阳性。
+Stück	das	块/片	🧩  部分，中性。
+Student	der	大学生	👨‍🎓  后缀 -ent 指代人时 (Präsident, Student)，100% 是阳性。
+Studium	das	大学学业	🔒  后缀 -ium 100% 是中性。
+Stuhl	der	椅子	🪑  四条腿的家具，阳性。
+Stunde	die	小时	⏳  以 -e 结尾的时间。
+Süßigkeiten	die	糖果	👯  复数形式。核心词 die Süßigkeit (后缀 -keit = 阴性)。
+Suppe	die	汤	🥣  以 -e 结尾的食物，阴性。
+	
+Tablet	das	平板电脑	📱  电子设备外来词，中性。
+Tafel	die	黑板	🏫  以 -el 结尾的扁平物体 (Gabel, Tafel)，阴性。
+Tag	der	天	☀️  时间单位除 Jahr 外 (Tag, Monat) 都是阳性。
+Tante	die	阿姨	👩  自然性别。
+Tasche	die	包/口袋	👜  以 -e 结尾的容器。
+Taschengeld	das	零花钱	🏗  词性随 das Geld。
+Tasse	die	杯子	☕  带把手的杯子，以 -e 结尾。
+Taxi	das	出租车	🚕  以 -i 结尾的交通工具缩写，中性。
+Team	das	团队	👥  英语借词，集体名词，中性。
+Tee	der	茶	🍵  饮料类，阳性。
+Teil	der	部分	🧩  Der Teil = 整体的一部分；Das Teil = 独立的零件。一般语境用 Der。
+Telefon	das	电话	☎️  后缀 -fon (Mikrofon, Telefon) 100% 是中性。
+Teller	der	盘子	🍽️ 餐具 扁平的盘子是阳性 (Der Teller)。
+Tennis	das	网球	🎾  英语来源的体育运动名称 (Tennis, Fußball, Golf - 这里的Golf指运动而非车) 通常作抽象名词时是中性。
+Termin	der	预约	📅  时间点，阳性。
+Text	der	文本	📄  源于拉丁语 textus，阳性。
+Theater	das	剧院	🎭  希腊语源场所，中性。
+Thema	das	主题	🔒  希腊语后缀 -ma (Thema, Drama, Klima) 100% 是中性。
+Ticket	das	票	🎫  英语借词，中性。
+Tier	das	动物	🐾  生物的总称，中性。
+Tipp	der	建议	💡  短促的英语借词，阳性。
+Tisch	der	桌子	🪵  坚固的木头家具，阳性。
+Titel	der	标题/头衔	🔖  源于拉丁语 titulus，阳性。
+Tochter	die	女儿	👧  自然性别。
+Toilette	die	厕所	🚽  以 -e 结尾。
+Tomate	die	西红柿	🍅  以 -e 结尾的果实。
+Topf	der	锅	🍲  深底容器，阳性。
+Torte	die	奶油蛋糕	🍰  以 -e 结尾的精致糕点。
+Tour	die	巡游	🚲  法语借词，阴性。
+Tourist	der	游客	👨  后缀 -ist (Polizist, Journalist) 指代人时，100% 是阳性。
+Training	das	训练	🔒  英语后缀 -ing (Shopping, Training) 借入德语后 100% 是中性。
+Traum	der	梦	💭  虚幻的图像，阳性。
+Treppe	die	楼梯	🪜  以 -e 结尾的结构。
+T-Shirt	das	T恤	👕  词性随 das Shirt (Hemd)。
+Tür	die	门	🚪 联想：房子的开口。记住 die Öffnung (开口) 是阴性，所以 die Tür 也是。
+	
+U-Bahn	die	地铁	🏗  词性随 die Bahn。
+Uhr	die	钟表	⌚  虽无词尾，但用来表示时间的器具是阴性。
+Umzug	der	搬家	🏗  词性随 der Zug。
+Unfall	der	事故	💥  词性随 der Fall (坠落/事件)。
+Universität	die	大学	🔒  后缀 -tät (Qualität, Universität) 100% 是阴性。
+Unterkunft	die	住宿	🏗  词性随 die Kunft (旧词：到来)。
+Unterricht	der	课程	📚  源于 richten。教导/指引的方向，阳性。
+Unterschied	der	区别	⚖️  源于 scheiden (区分)。词干名词，阳性。
+Unterschrift	die	签名	🏗  词性随 die Schrift (文字/书写)。
+Urlaub	der	假期	🏖️  源于 erlauben (允许)。被允许离开的时间，阳性。
+		
+Vater	der	父亲	👨  自然性别。
+Veranstaltung	die	活动	🔒  后缀 -ung 100% 是阴性。
+Verein	der	协会/俱乐部	🤝  源于 einen (统一)。联合体，阳性。
+Verkehr	der	交通	🚦  车辆的流动，阳性。
+Vermietung	die	出租	🔒  后缀 -ung 100% 是阴性。
+Vertrag	der	合同	📝  源于 tragen。达成的协议，阳性。
+Vogel	der	鸟	🐦  常见的动物名称，阳性。
+		
+Wagen	der	车	🚗  交通工具，阳性。
+Wald	der	森林	🌲  树木 (der Baum) 的集合，依然是阳性。
+Wäsche	die	待洗衣物	🧺  以 -e 结尾的集合。
+Wasser	das	水	💧  元素，中性。
+Webseite	die	网页	🏗  词性随 die Seite。
+Weg	der	以此路	🛣️  简单的路径，阳性。
+Wein	der	葡萄酒	🍷  酒精饮料，阳性。
+Welt	die	世界	🌍  虽然以辅音结尾，但这是承载一切的母亲 (die Mutter Erde)。
+Werkstatt	die	车间	🏗  词性随 die Statt (场所)。
+Wettbewerb	der	比赛	🏆  源于 werben。竞争，阳性。
+Wetter	das	天气	🌦️  不可控的自然状态，中性。注意：具体的雨/雪是阳性，但“天气”本身是中性。
+Wind	der	风	🌬️  气象现象，阳性。
+Woche	die	周	📅  以 -e 结尾的时间单位。
+Wochenende	das	周末	🏗  词性随 das Ende。
+Wohnung	die	公寓	🔒  后缀 -ung 100% 是阴性。
+Wolke	die	云	☁️  以 -e 结尾。
+Wort	das	词	💬  语言的基本单位，中性。
+Wunsch	der	愿望	✨  源于 wünschen。心中的想法，阳性。
+Wurst	die	香肠	🌭 名言：Alles hat ein Ende, nur die Wurst hat zwei. (万物皆有终，唯有香肠有两头)。因为它是德国文化的灵魂，所以是 die。
+		
+Zahl	die	数字	🔢  数字通常被视为抽象概念。阴性。
+Zahn	der	牙齿	🦷  坚硬的、尖锐的东西，阳性。
+Zeit	die	时间	⏳  Die Zeit。最抽象的概念，阴性。
+Zeitung	die	报纸	🔒  后缀 -ung 100% 是阴性。
+Zelt	das	帐篷	⛺  临时的房子 (das Haus)，中性。
+Zentrum	das	中心	🔒  拉丁后缀 -um 100% 是中性。
+Zettel	der	纸条	📝  以 -el 结尾的小纸片，阳性。
+Zeugnis	das	证书/成绩单	🔒  后缀 -nis 通常是中性。
+Ziel	das	目标	🎯  终点，中性。
+Zimmer	das	房间	🏠  房子的一部分，中性。
+Zirkus	der	马戏团	🎪  拉丁后缀 -us (Zirkus, Modus, Rhythmus) 100% 是阳性。
+Zitrone	die	柠檬	🍋  以 -e 结尾的水果。
+Zoo	der	动物园	🦁  包含很多动物 (die Tiere) 的地方，但本身是阳性。
+Zucker	der	糖	🍬  颗粒状物质，阳性。
+Zug	der	火车	🚆  拉动的东西，阳性。
+
+
+
     `.trim();
 
-    let db = JSON.parse(localStorage.getItem('v22_db')) || null;
+    let db = JSON.parse(localStorage.getItem('v22_1_db')) || null;
     let activeKeys = [];
+    let sessionMistakes = []; // 【新增】用于记录本轮练习中出错的单词
     let activeIdx = 0;
     let isLocked = false;
     let stepStartTime = 0;
@@ -266,7 +702,7 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
                     }
                 }
             });
-            localStorage.setItem('v22_db', JSON.stringify(db));
+            localStorage.setItem('v22_1_db', JSON.stringify(db));
         }
         showDashboard();
     }
@@ -297,6 +733,7 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
         if (keys.length === 0) return alert("本组已攻克！");
         activeKeys = keys.sort((a, b) => (db[a].score || 0) - (db[b].score || 0));
         activeIdx = 0;
+        sessionMistakes = []; // 重置本轮错误记录
         document.getElementById('label-L').innerText = "字母组: " + L;
         document.getElementById('card-stage').innerHTML = ""; 
         document.getElementById('view-dash').classList.add('hidden');
@@ -310,14 +747,12 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
         const word = activeKeys[activeIdx];
         const stage = document.getElementById('card-stage');
 
-        // 1. 旧卡片向左划出并销毁
         const oldActive = stage.querySelector('.card-active');
         if (oldActive) {
             oldActive.classList.replace('card-active', 'card-exit');
-            setTimeout(() => oldActive.remove(), 700); // 动画结束后从 DOM 移除
+            setTimeout(() => oldActive.remove(), 700);
         }
 
-        // 2. 新卡片从右入场
         const newCard = document.createElement('div');
         newCard.className = 'card card-incoming';
         newCard.innerHTML = `
@@ -352,6 +787,7 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
 
         btn.classList.add(isRight ? 'correct-ans' : 'wrong-ans');
         if(!isRight) {
+            sessionMistakes.push(word); // 【记录错误】
             db[word].score = Math.max(-50, (db[word].score || 0) - 25);
             const correctBtn = document.getElementById('btn-1').dataset.isCorrect === "true" ? document.getElementById('btn-1') : document.getElementById('btn-2');
             correctBtn.classList.add('correct-ans');
@@ -361,7 +797,7 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
         }
 
         speakText(db[word].gender + " " + word, isRight ? 1 : 2);
-        localStorage.setItem('v22_db', JSON.stringify(db));
+        localStorage.setItem('v22_1_db', JSON.stringify(db));
 
         setTimeout(() => {
             activeIdx++;
@@ -372,14 +808,19 @@ Euro	der	欧元	💶  几乎所有货币单位（Der Dollar, Der Franken, Der Ye
     function renderSummary() {
         document.getElementById('view-test').classList.add('hidden');
         document.getElementById('view-result').classList.remove('hidden');
-        const mistakes = activeKeys.filter(w => !db[w].learned);
-        document.getElementById('res-score').innerText = `本轮正确率: ${Math.round((activeKeys.length - mistakes.length)/activeKeys.length*100)}%`;
+        
+        // 【修正计算公式】使用本轮正确数 / 本轮总数
+        const correctCount = activeKeys.length - sessionMistakes.length;
+        const accuracy = Math.round((correctCount / activeKeys.length) * 100);
+        
+        document.getElementById('res-score').innerText = `本轮正确率: ${accuracy}%`;
         const container = document.getElementById('res-mistakes-list');
-        if(mistakes.length === 0) {
+        
+        if(sessionMistakes.length === 0) {
             container.innerHTML = "<div style='text-align:center; padding:20px;'>✨ 全部攻克！</div>";
         } else {
-            container.innerHTML = mistakes.map(w => `
-                <div class="summary-item" style="border-left: 5px solid var(--danger); background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;">
+            container.innerHTML = sessionMistakes.map(w => `
+                <div class="summary-item">
                     <strong>${db[w].gender} ${w}</strong> - ${db[w].mean}<br>
                     <small style="color: var(--warning);">💡 记忆点: ${db[w].hook}</small>
                 </div>`).join('');
