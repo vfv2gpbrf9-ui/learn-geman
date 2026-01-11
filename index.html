@@ -3,63 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>德语闪记 V23.0 - 极速晋级版</title>
+    <title>德语闪记 V45.0 - 黄金比例版</title>
     <style>
         :root {
             --primary: #6c5ce7; --success: #00b894; --empty: #e0e0e0; --danger: #d63031; --warning: #fdcb6e; --bg: #f4f7f6;
+            --gray-bg: #f1f2f6; --gray-text: #747d8c;
         }
         body { font-family: 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 500px; padding-top: 10px; }
         .hidden { display: none !important; }
 
-        .stage { position: relative; width: 100%; height: 320px; margin-top: 30px; perspective: 1000px; overflow: hidden; }
-
+        /* 卡片舞台 */
+        .stage { position: relative; width: 100%; height: 320px; margin-top: 30px; perspective: 1000px; }
         .card { 
             position: absolute; width: 100%; height: 280px; 
             background: white; border-radius: 28px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
             box-sizing: border-box; padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden; 
         }
 
-        .card-active { left: 0; opacity: 1; z-index: 100; transform: translate3d(0, 0, 0) scale(1); }
-        .card-exit { left: -100%; opacity: 0; z-index: 50; transform: translate3d(0, 0, -100px) scale(0.9); }
-        .card-incoming { left: 100%; opacity: 0; z-index: 10; transform: scale(0.95); }
+        /* --- 修正：黄金比例字号 --- */
+        .word-display { 
+            font-size: 4rem; /* 调整为原始 3rem 的约 1.33 倍，平衡清晰度与空间 */
+            font-weight: 900; 
+            color: #2d3436; 
+            text-align: center; 
+            line-height: 1.1; 
+        }
+        .mean-display { font-size: 1.1rem; color: #636e72; margin-top: 15px; text-align: center; }
 
-        .word-display { font-size: 3rem; font-weight: 800; color: #2d3436; text-align: center; }
-        .mean-display { font-size: 1.2rem; color: #636e72; margin-top: 10px; font-weight: 500; }
+        /* 挂牌样式 */
+        .rope-hanger { position: absolute; top: -65px; right: 40px; width: 2px; height: 80px; background: #bdc3c7; z-index: 105; }
+        .sign-wrapper { position: absolute; top: 12px; right: 12px; z-index: 110; cursor: pointer; transition: transform 0.2s; }
+        .sign-wrapper:hover { transform: scale(1.05); }
+        .delicate-sign { background: #fff; border: 2px solid var(--success); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; color: var(--success); font-weight: bold; position: relative; }
+        .delicate-sign::before { content: ''; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; border: 2px solid #bdc3c7; border-radius: 50%; background: white; }
 
+        /* 看板网格 */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .letter-node { background: #fff; border: 2px solid #eee; border-radius: 16px; padding: 15px; cursor: pointer; text-align: center; transition: 0.2s; }
-        .letter-node:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .char { font-size: 1.6rem; font-weight: bold; color: var(--primary); }
-        .progress-bar { width: 100%; height: 6px; background: var(--empty); border-radius: 3px; overflow: hidden; margin-top: 10px; }
-        .progress-inner { height: 100%; background: var(--success); transition: width 0.5s ease; }
+        .letter-node { background: #fff; border: 2px solid #eee; border-radius: 16px; padding: 15px; cursor: pointer; text-align: center; }
+        .progress-bar { width: 100%; height: 6px; background: var(--empty); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+        .progress-inner { height: 100%; background: var(--success); transition: width 0.5s; }
 
-        .choice-container { margin-top: 20px; position: relative; z-index: 200; }
-        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 1.6rem; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none; }
+        /* 选项按钮 */
+        .choice-btn { width: 100%; height: 75px; margin-bottom: 12px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 1.6rem; font-weight: bold; cursor: pointer; }
         .correct-ans { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
         .wrong-ans { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
         
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-        .btn-full { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-        .summary-item { border-left: 5px solid var(--danger); background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
+        .btn-full { width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 18px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+
+        /* 总结样式 */
+        .summary-section { background: #fff; padding: 15px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #eee; }
+        .mistake-box { border-left: 6px solid var(--danger); }
+        .archive-box { background: var(--gray-bg); border: 1px solid #ddd; padding: 15px; border-radius: 15px; color: var(--gray-text); }
+        .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .summary-item:last-child { border-bottom: none; }
+        .restore-btn { border: 1px solid #ccc; background: white; padding: 5px 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="view-dash" class="card-static" style="background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+    <div id="view-dash" class="card-static">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="margin:0;">掌握看板</h3>
-            <button onclick="resetAllData()" style="color:#ff7675; border:none; background:none; cursor:pointer;">重置进度</button>
+            <h3 style="margin:0;">掌握进度表</h3>
+            <button onclick="resetSystem()" style="color:#ff7675; border:none; background:none; cursor:pointer; font-weight:bold;">全部重置</button>
         </div>
         <div id="dash-grid" class="dashboard-grid"></div>
     </div>
 
     <div id="view-test" class="hidden">
-        <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary); font-size:0.9rem; padding: 0 10px;">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; color:#999; font-size:0.95rem; padding: 0 10px;">
             <span id="label-L">-</span> <span id="label-N">0/0</span>
         </div>
         <div class="stage" id="card-stage"></div>
@@ -69,18 +86,15 @@
         </div>
     </div>
 
-    <div id="view-result" class="card-static hidden" style="background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
-        <h2 style="text-align:center;">🎯 训练总结</h2>
-        <div id="res-score" style="text-align:center; font-size:1.5rem; color:var(--primary); font-weight:bold; margin:15px 0;"></div>
-        <div id="res-mistakes-list" style="max-height:400px; overflow-y:auto; padding-right:5px;"></div>
-        <button class="btn-full" onclick="showDashboard()" style="margin-top:20px;">回到看板</button>
+    <div id="view-result" class="hidden">
+        <h2 style="text-align:center;">🎯 复习战报</h2>
+        <div id="res-list" style="max-height:550px; overflow-y:auto; padding-right:5px;"></div>
+        <button class="btn-full" onclick="showDashboard()" style="margin-top:20px;">确定并返回</button>
     </div>
 </div>
 
 <script>
-    // 默认词库
     const MY_VOCAB_LIST = `
-单词,定冠词,意思,🧠 精准记忆逻辑 / 场景联想
 Abend,der,晚上,"🔗  除了深夜(die Nacht)，一天中的时间段全是阳性：der Morgen, der Mittag, der Abend。（这是时间段的铁律）"
 Abfahrt,die,出发,🏗  复合词词性由最后一个词决定。核心词是 die Fahrt (行程/驾驶)。💡  行程往往也是指“一段路” (die Straße)。
 Adresse,die,地址,💃 联想记忆，你要去拜访一位女士 (die Dame)，所以你需要 die Adresse。
@@ -672,19 +686,21 @@ Zitrone	die	柠檬	🍋  以 -e 结尾的水果。
 Zoo	der	动物园	🦁  包含很多动物 (die Tiere) 的地方，但本身是阳性。
 Zucker	der	糖	🍬  颗粒状物质，阳性。
 Zug	der	火车	🚆  拉动的东西，阳性。
+
     `.trim();
 
-    let db = JSON.parse(localStorage.getItem('v23_db')) || null;
+    const STORAGE_KEY = 'v45_db'; 
+    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || null;
     let activeKeys = [];
-    let sessionMistakes = []; 
+    let sessionMistakes = [];
     let activeIdx = 0;
     let isLocked = false;
-    let stepStartTime = 0;
+    let currentL = "";
 
-    function speakText(text, repeatCount = 1) {
+    function speakText(text) {
         window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(Array(repeatCount).fill(text).join(", "));
-        msg.lang = 'de-DE'; msg.rate = 0.85;
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'de-DE'; msg.rate = 0.9;
         window.speechSynthesis.speak(msg);
     }
 
@@ -693,51 +709,53 @@ Zug	der	火车	🚆  拉动的东西，阳性。
             db = {};
             MY_VOCAB_LIST.split('\n').forEach(line => {
                 const p = line.split(/[,|\t]/).map(s => s.trim());
-                if (p.length >= 3) {
-                    const word = p[0];
-                    if (word && /^[a-zA-Z]/.test(word)) {
-                        db[word] = { gender: p[1], mean: p[2], hook: p[3]||'加油', char: word[0].toUpperCase(), score: 0, learned: false };
-                    }
+                if (p.length >= 3 && /^[A-Za-zÄäÖöÜüß]/.test(p[0])) {
+                    db[p[0]] = { gender: p[1], mean: p[2], hook: p[3]||'', char: p[0][0].toUpperCase(), learned: false, streak: 0 };
                 }
             });
-            localStorage.setItem('v23_db', JSON.stringify(db));
+            saveData();
         }
         showDashboard();
     }
 
     function showDashboard() {
-        document.querySelectorAll('.card-static, #view-test').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.card-static, #view-test, #view-result').forEach(c => c.classList.add('hidden'));
         document.getElementById('view-dash').classList.remove('hidden');
+        const grid = document.getElementById('dash-grid');
         const groups = {};
         Object.keys(db).forEach(w => {
             const L = db[w].char;
             if(!groups[L]) groups[L] = { total: 0, ok: 0 };
             groups[L].total++;
-            // 掌握标准依然是 80 分
-            if(db[w].score >= 80) groups[L].ok++;
+            if(db[w].learned) groups[L].ok++;
         });
-        const grid = document.getElementById('dash-grid');
         grid.innerHTML = Object.keys(groups).sort().map(L => {
             const p = Math.round(groups[L].ok / groups[L].total * 100);
-            return `<div class="letter-node" onclick="initTest('${L}')">
-                <div class="char">${L}</div>
-                <div style="font-size:0.8rem; color:#666;">掌握 ${groups[L].ok}/${groups[L].total}</div>
+            return `<div class="letter-node" onclick="handleGroupClick('${L}', ${p})">
+                <div style="font-size:1.8rem; font-weight:bold; color:var(--primary);">${L}</div>
+                <div style="font-size:0.85rem; color:#666;">掌握 ${groups[L].ok}/${groups[L].total}</div>
                 <div class="progress-bar"><div class="progress-inner" style="width:${p}%"></div></div>
             </div>`;
         }).join('');
     }
 
+    function handleGroupClick(L, progress) {
+        if (progress === 100) {
+            if (confirm(`该组已掌握。重置进度重新复习？`)) {
+                Object.keys(db).forEach(w => { if (db[w].char === L) { db[w].streak = 0; db[w].learned = false; } });
+                saveData(); showDashboard();
+            }
+        } else { initTest(L); }
+    }
+
     function initTest(L) {
-        const keys = Object.keys(db).filter(w => db[w].char === L && !db[w].learned);
-        if (keys.length === 0) return alert("本组已攻克！");
-        // 按分数从低到高排序，弱项优先展示
-        activeKeys = keys.sort((a, b) => (db[a].score || 0) - (db[b].score || 0));
-        activeIdx = 0;
-        sessionMistakes = [];
-        document.getElementById('label-L').innerText = "挑战字母: " + L;
-        document.getElementById('card-stage').innerHTML = ""; 
+        currentL = L;
+        activeKeys = Object.keys(db).filter(w => db[w].char === L && !db[w].learned);
+        if (activeKeys.length === 0) return;
+        activeIdx = 0; sessionMistakes = [];
         document.getElementById('view-dash').classList.add('hidden');
         document.getElementById('view-test').classList.remove('hidden');
+        document.getElementById('label-L').innerText = "正在测试: " + L;
         renderStep();
     }
 
@@ -746,35 +764,31 @@ Zug	der	火车	🚆  拉动的东西，阳性。
         isLocked = false;
         const word = activeKeys[activeIdx];
         const stage = document.getElementById('card-stage');
-
-        const oldActive = stage.querySelector('.card-active');
-        if (oldActive) {
-            oldActive.classList.replace('card-active', 'card-exit');
-            setTimeout(() => oldActive.remove(), 700);
-        }
-
-        const newCard = document.createElement('div');
-        newCard.className = 'card card-incoming';
-        newCard.innerHTML = `
-            <div class="word-display">${word}</div>
-            <div class="mean-display">${db[word].mean}</div>
+        stage.innerHTML = `
+            <div class="card card-active">
+                <div class="rope-hanger"></div>
+                <div class="sign-wrapper" onclick="quickLearned('${word}')">
+                    <div class="delicate-sign">记住了</div>
+                </div>
+                <div class="word-display">${word}</div>
+                <div class="mean-display">${db[word].mean}</div>
+            </div>
         `;
-        stage.appendChild(newCard);
-
-        setTimeout(() => { newCard.classList.replace('card-incoming', 'card-active'); }, 50);
-
         document.getElementById('label-N').innerText = `${activeIdx + 1} / ${activeKeys.length}`;
-        stepStartTime = Date.now();
-        
-        document.getElementById('btn-1').className = 'choice-btn';
-        document.getElementById('btn-2').className = 'choice-btn';
         const corr = db[word].gender;
-        const wrng = ["der","die","das"].filter(g => g !== corr)[Math.floor(Math.random()*2)];
+        const genders = ["der", "die", "das"];
+        const wrng = genders.filter(g => g !== corr)[Math.floor(Math.random()*2)];
         const swap = Math.random() > 0.5;
-        document.getElementById('btn-1').innerText = swap ? wrng : corr;
-        document.getElementById('btn-1').dataset.isCorrect = !swap;
-        document.getElementById('btn-2').innerText = swap ? corr : wrng;
-        document.getElementById('btn-2').dataset.isCorrect = swap;
+        const b1 = document.getElementById('btn-1'); const b2 = document.getElementById('btn-2');
+        b1.innerText = swap ? wrng : corr; b1.dataset.isCorrect = !swap;
+        b2.innerText = swap ? corr : wrng; b2.dataset.isCorrect = swap;
+        b1.className = 'choice-btn'; b2.className = 'choice-btn';
+    }
+
+    function quickLearned(word) {
+        event.stopPropagation();
+        alert(`${db[word].gender} ${word} 记住了！`);
+        db[word].learned = true; db[word].streak = 3; saveData(); activeIdx++; renderStep();
     }
 
     function submitAns(n) {
@@ -783,51 +797,44 @@ Zug	der	火车	🚆  拉动的东西，阳性。
         const word = activeKeys[activeIdx];
         const btn = document.getElementById('btn-' + n);
         const isRight = btn.dataset.isCorrect === "true";
-        const timeTaken = (Date.now() - stepStartTime) / 1000;
-
         btn.classList.add(isRight ? 'correct-ans' : 'wrong-ans');
-        
-        if(!isRight) {
-            sessionMistakes.push(word);
-            // 【V23 逻辑更新】打错扣 45 分，且不低于 0 分
-            db[word].score = Math.max(0, (db[word].score || 0) - 45);
-            const correctBtn = document.getElementById('btn-1').dataset.isCorrect === "true" ? document.getElementById('btn-1') : document.getElementById('btn-2');
-            correctBtn.classList.add('correct-ans');
+        if (isRight) {
+            db[word].streak++;
+            if (db[word].streak >= 3) db[word].learned = true;
         } else {
-            // 【V23 逻辑更新】快速对 30 分，慢速对 20 分
-            let increment = timeTaken > 5 ? 20 : 30;
-            db[word].score = Math.min(100, (db[word].score || 0) + increment);
-            if(db[word].score >= 80) db[word].learned = true;
+            sessionMistakes.push(word); db[word].streak = 0;
         }
-
-        speakText(db[word].gender + " " + word, isRight ? 1 : 2);
-        localStorage.setItem('v23_db', JSON.stringify(db));
-
-        setTimeout(() => {
-            activeIdx++;
-            renderStep();
-        }, isRight ? 1800 : 3500);
+        speakText(db[word].gender + " " + word);
+        saveData();
+        setTimeout(() => { activeIdx++; renderStep(); }, 1500);
     }
 
     function renderSummary() {
         document.getElementById('view-test').classList.add('hidden');
         document.getElementById('view-result').classList.remove('hidden');
-        const correctCount = activeKeys.length - sessionMistakes.length;
-        const accuracy = Math.round((correctCount / activeKeys.length) * 100);
-        document.getElementById('res-score').innerText = `本轮正确率: ${accuracy}%`;
-        const container = document.getElementById('res-mistakes-list');
-        if(sessionMistakes.length === 0) {
-            container.innerHTML = "<div style='text-align:center; padding:20px;'>✨ 完美攻克！</div>";
-        } else {
-            container.innerHTML = sessionMistakes.map(w => `
-                <div class="summary-item">
-                    <strong>${db[w].gender} ${w}</strong> - ${db[w].mean}<br>
-                    <small style="color: var(--warning);">💡 记忆点: ${db[w].hook}</small>
-                </div>`).join('');
+        const archivedWords = Object.keys(db).filter(w => db[w].char === currentL && db[w].learned);
+        const uniqueMistakes = [...new Set(sessionMistakes)];
+        let html = "<div class='summary-section mistake-box'><h4>❌ 错题回顾：</h4>";
+        if (uniqueMistakes.length === 0) html += "<p style='color:var(--success)'>✨ 表现完美！</p>";
+        else uniqueMistakes.forEach(w => {
+            html += `<div class='summary-item'><div><strong>${db[w].gender} ${w}</strong> - ${db[w].mean}<br><small>💡 ${db[w].hook}</small></div></div>`;
+        });
+        html += "</div>";
+        if (archivedWords.length > 0) {
+            html += "<div class='archive-box'><h4>🗄️ 已记住单词：</h4>";
+            archivedWords.forEach(w => {
+                html += `<div class='summary-item'><span><strong>${db[w].gender} ${w}</strong></span><button class='restore-btn' onclick='restoreWord("${w}")'>再次复习</button></div>`;
+            });
+            html += "<p style='font-size:0.75rem; margin-top:10px; opacity:0.6;'>* 规则：连续3次正确或点击挂牌即可掌握。</p></div>";
         }
+        document.getElementById('res-list').innerHTML = html;
     }
 
-    function resetAllData() { if(confirm("确定清空数据吗？")) { localStorage.clear(); location.reload(); } }
+    function restoreWord(word) {
+        db[word].learned = false; db[word].streak = 0; saveData(); renderSummary();
+    }
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+    function resetSystem() { if(confirm("彻底重置？")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
     window.onload = initApp;
 </script>
 </body>
